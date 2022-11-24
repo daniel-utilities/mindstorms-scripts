@@ -1,0 +1,12 @@
+[submodule "bash-common-scripts"]
+	path = bash-common-scripts
+	url = https://github.com/daniel-utilities/bash-common-scripts.git
+	branch = main
+[submodule "wsl-usb-scripts"]
+	path = wsl-usb-scripts
+	url = https://github.com/daniel-utilities/wsl-usb-scripts.git
+	branch = main
+[submodule "docker-scripts"]
+	path = docker-scripts
+	url = https://github.com/daniel-utilities/docker-scripts.git
+	branch = main
