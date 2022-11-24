@@ -1,0 +1,4 @@
+# NXT in normal mode
+SUBSYSTEM=="usb", ATTR{idVendor}=="0694", ATTR{idProduct}=="0002", GROUP="users", MODE="0660", SYMLINK+="nxt-%k", RUN+="/etc/udev/nxt_event_handler.sh 'nxt' '$attr{serial}' '%k' '%M' '%m'" 
+# NXT in reset (SAM-BA) mode
+SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="6124", GROUP="users", MODE="0660", SYMLINK+="samba-%k" RUN+="/etc/udev/nxt_event_handler.sh 'samba' '$attr{serial}' '%k' '%M' '%m'"
