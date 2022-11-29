@@ -57,25 +57,50 @@ function install_udev_rules_nxt() {
 
 # NEXTTOOL
 function install_nexttool() {
+    if [ -x "$(command -v nexttool)" ]; then
+        echo "NeXTTool is already installed."
+        if [[ _AUTOCONFIRM == true ]]; then return; fi;
+        if ! confirmation_prompt; then return; fi;
+    fi
+    local url="http://svn.code.sf.net/p/bricxcc/code/"
+    local name="bricxcc"
+    local tmp_dir="/tmp"
+    local repo_dir="$tmp_dir/$name"
     local install_dir="/usr/local/bin"
-    echo "Downloading repository: http://svn.code.sf.net/p/bricxcc/code/"
-    mkdir -p "$SRC_DIR/bricxcc"
-    cd "$SRC_DIR/bricxcc"
-    svn checkout http://svn.code.sf.net/p/bricxcc/code/
+    local original_dir="$pwd"
+    echo ""
+    echo "The following repository will be downloaded into $repo_dir:" 
+    echo "  URL=$url"
+    echo "  BRANCH=$branch"
+    echo ""
+    echo "Then, files will be installed to:"
+    echo "  $install_cmd"
+    echo ""
+    if ! confirmation_prompt; then return; fi;
+    echo ""
+
+    echo "Downloading repository: $name"
+    mkdir -p "$repo_dir"
+    cd "$repo_dir"
+    svn checkout "$url"
 
     echo "Building nexttool..."
-    cd "$SRC_DIR/bricxcc/code"
+    cd "$repo_dir/code"
     make -f nexttool.mak
-    sudo cp -f "./nexttool" "$install_dir/nexttool"
 
     echo "Installing nexttool to $install_dir..."
-    cd "$install_dir"
-    sudo chown root:root "./nexttool"
-    sudo chmod a+s "./nexttool"
+    sudo cp -f "$repo_dir/code/nexttool" "$install_dir/nexttool"
+    sudo chown root:root "$install_dir/nexttool"
+    sudo chmod a+s "$install_dir/nexttool"
 
-    if [ ! -d "/home/$USER/bricxcc" ]; then
-        cp -r "$CONFIG_DIR/bricxcc" "/home/$USER/bricxcc"
+    local userhome;
+    get_user_home userhome
+    if [ ! -d "$userhome/bricxcc" ]; then
+        cp -r "$config/bricxcc" "$userhome/bricxcc"
     fi
+
+    cd "$original_dir"
+    rm -rf "$repo_dir"
 }
 
 
@@ -85,28 +110,47 @@ function install_libnxt() {
         echo "Could not install LibNXT (Docker not installed)."
         return 1
     fi
-    local install_dir="/usr/local/bin"
-    echo "Downloading repository: https://github.com/rvs/libnxt.git"
-    cd "$SRC_DIR"
-    if [ ! -d "./libnxt" ]; then
-        git clone https://github.com/rvs/libnxt.git
-    else
-        cd "./libnxt"
-        git pull origin master
+    if [ -x "$(command -v fwflash)" ]; then
+        echo "LibNXT utilities are already installed."
+        if [[ _AUTOCONFIRM == true ]]; then return; fi;
+        if ! confirmation_prompt; then return; fi;
     fi
+    local url="https://github.com/rvs/libnxt.git"
+    local branch=master
+    local name="$(basename $url)"; name="${name%.*}"
+    local tmp_dir="/tmp"
+    local repo_dir="$tmp_dir/$name"
+    local install_dir="/usr/local/bin"
+    local original_dir="$pwd"
+    echo ""
+    echo "The following repository will be downloaded into $repo_dir:" 
+    echo "  URL=$url"
+    echo "  BRANCH=$branch"
+    echo ""
+    echo "Then, files will be installed to:"
+    echo "  $install_cmd"
+    echo ""
+    if ! confirmation_prompt; then return; fi;
+    echo ""
+
+    echo "Downloading repository: $name"
+    cd "$tmp_dir"
+    git_latest "$url" "$branch"
 
     echo "Building LibNXT..."
-    cd "$SRC_DIR/libnxt"
+    cd "$repo_dir"
     make
     
     echo "Installing fwexec and fwflash to $install_dir..."
-    cd "$SRC_DIR/libnxt/out"
-    sudo cp -f "./fwflash" "$install_dir/fwflash"
-    sudo cp -f "./fwexec" "$install_dir/fwexec"
+    sudo cp -f "$repo_dir/out/fwflash" "$install_dir/fwflash"
+    sudo cp -f "$repo_dir/out/fwexec" "$install_dir/fwexec"
     cd "$install_dir"
     sudo chown root:root "./fwflash"
     sudo chmod a+s "./fwflash"
     sudo chown root:root "./fwexec"
     sudo chmod a+s "./fwexec"
+
+    cd "$original_dir"
+    rm -rf "$repo_dir"
 }
 

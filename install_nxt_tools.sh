@@ -45,9 +45,3 @@ install_udev_rules_nxt
 install_nexttool
 install_libnxt
 
-
-
-
-
-
-
