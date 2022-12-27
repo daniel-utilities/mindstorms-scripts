@@ -51,23 +51,24 @@ function install_udev_rules_nxt() {
     done
 
     echo "Reloading UDEV..."
-    sudo udevadm control --reload-rules && sudo udevadm trigger
+    sudo udevadm control --reload-rules
+    sudo udevadm trigger
 }
 
 
 # NEXTTOOL
 function install_nexttool() {
-    if [ -x "$(command -v nexttool)" ]; then
-        echo "NeXTTool is already installed."
-        if [[ _AUTOCONFIRM == true ]]; then return; fi;
-        if ! confirmation_prompt; then return; fi;
-    fi
     local url="http://svn.code.sf.net/p/bricxcc/code/"
     local name="bricxcc"
     local tmp_dir="/tmp"
     local repo_dir="$tmp_dir/$name"
     local install_dir="/usr/local/bin"
     local original_dir="$pwd"
+    if [ -x "$(command -v nexttool)" ]; then
+        echo "NeXTTool is already installed."
+        if [[ __AUTOCONFIRM == $TRUE ]]; then return; fi;
+        if ! confirmation_prompt "Continue anyway? [Y/N]: "; then return; fi;
+    fi
     echo ""
     echo "The following repository will be downloaded into $repo_dir:" 
     echo "  URL=$url"
@@ -106,15 +107,6 @@ function install_nexttool() {
 
 # LIBNXT
 function install_libnxt() {
-    if [ ! -x "$(command -v docker)" ]; then
-        echo "Could not install LibNXT (Docker not installed)."
-        return 1
-    fi
-    if [ -x "$(command -v fwflash)" ]; then
-        echo "LibNXT utilities are already installed."
-        if [[ _AUTOCONFIRM == true ]]; then return; fi;
-        if ! confirmation_prompt; then return; fi;
-    fi
     local url="https://github.com/rvs/libnxt.git"
     local branch=master
     local name="$(basename $url)"; name="${name%.*}"
@@ -122,6 +114,15 @@ function install_libnxt() {
     local repo_dir="$tmp_dir/$name"
     local install_dir="/usr/local/bin"
     local original_dir="$pwd"
+#   if [ ! -x "$(command -v docker)" ]; then
+#       echo "Could not install LibNXT (Docker not installed)."
+#       return 1
+#   fi
+    if [ -x "$(command -v fwflash)" ]; then
+        echo "LibNXT is already installed."
+        if [[ __AUTOCONFIRM == $TRUE ]]; then return; fi;
+        if ! confirmation_prompt "Continue anyway? [Y/N]: "; then return; fi;
+    fi
     echo ""
     echo "The following repository will be downloaded into $repo_dir:" 
     echo "  URL=$url"
