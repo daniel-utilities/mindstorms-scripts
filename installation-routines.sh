@@ -18,7 +18,7 @@ function install_prerequisites() {
 
 
 # UDEV
-function install_udev_rules_nxt() {
+function install_nxt_udev_rules() {
     local -a install_files=(
         "$config_dir/udev/70-nxt.rules         : /etc/udev/rules.d/70-nxt.rules"
         "$config_dir/udev/nxt_event_handler.sh : /etc/udev/nxt_event_handler.sh"
