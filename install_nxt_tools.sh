@@ -10,6 +10,7 @@ bin_dir="$root_dir/bin"
 # Import functions from other files
 sources=(   "$root_dir/bash-common-scripts/common-functions.sh" 
             "$root_dir/bash-common-scripts/common-io.sh"        
+            "$root_dir/bash-common-scripts/common-ui.sh"        
             "$root_dir/installation-routines.sh"                )
 for i in "${sources[@]}"; do
     if [ ! -e "$i" ]; then
@@ -23,15 +24,16 @@ for i in "${sources[@]}"; do
     fi
 done
 
+declare -A sources
 
 # ***************************************
 # ARGS
 # ***************************************
-declare -a args=( [skip-all]=false )
+declare -A args=( ["skip-prompts"]="false" )
 fast_argparse args "" "skip-prompts"
 
-if [[ "${args[skip-prompts]}" == true ]]; then
-    _AUTOCONFIRM=true
+if [[ "${args[skip-prompts],,}" == true ]]; then
+    __AUTOCONFIRM=true
 fi
 
 
