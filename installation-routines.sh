@@ -2,12 +2,18 @@
 ##################################################################################
 #                             USB Configuration for NXT
 ##################################################################################
-function install_nxt_usb() {
+function install_usb_config() {
     local -A fnargs=( ["config"]="./config" )
     fast_argparse fnargs "" "config" "$@"
     local config_dir="${fnargs[config]}"
 
+    local url="https://github.com/daniel-contrib/pbrick-rules.git"
+    local branch=main
+    local repo="$(basename $url .git)"
+    local repo_dir="/tmp/$repo"
+
     local -a install_files=(
+        "$repo_dir/debian/pbrick-rules.pbrick.udev : /etc/udev/rules.d/50-pbrick.rules"
         "$config_dir/udev/70-nxt.rules         : /etc/udev/rules.d/70-nxt.rules"
         "$config_dir/udev/nxt_event_handler.sh : /etc/udev/nxt_event_handler.sh"
     )
@@ -17,11 +23,16 @@ function install_nxt_usb() {
 
     echo ""
     echo "--------------------------------------------------------------------------------"
-    echo "                            USB Configuration for NXT"
+    echo "                            USB Device Configuration"
     echo "--------------------------------------------------------------------------------"
     echo ""
-    echo "UDEV rules are required to access NXT and SAM-BA devices over USB."
+    echo "UDEV rules are required to access Mindstorms devices over USB."
     echo "Without this, tools will not work without 'sudo' and many scripts will break."
+    echo ""
+    echo "The following repository will be downloaded:" 
+    echo "  URL:    $url"
+    echo "  Branch: $branch"
+    echo "  Path:   $repo_dir"
     echo ""
     echo "The following files will be installed:" 
     print_var install_files -showname false -wrapper ""
@@ -31,6 +42,11 @@ function install_nxt_usb() {
     echo ""
     if ! confirmation_prompt; then return 0; fi
     echo ""
+
+    echo ""
+    echo "Downloading repository: $repo"
+    cd "/tmp"
+    git_latest "$url" "$branch"
 
     echo ""
     echo "Installing UDEV rules..."
@@ -56,16 +72,16 @@ function install_nxt_usb() {
 
 
 ##################################################################################
-#                             Bluetooth Configuration for NXT
+#                             Bluetooth Device Configuration
 ##################################################################################
-function install_nxt_bluetooth() {
+function install_bluetooth_config() {
     local -A fnargs=( ["config"]="./config" )
     fast_argparse fnargs "" "config" "$@"
     local config_dir="${fnargs[config]}"
 
     echo ""
     echo "--------------------------------------------------------------------------------"
-    echo "                      Bluetooth Configuration for NXT"
+    echo "                      Bluetooth Device Configuration"
     echo "--------------------------------------------------------------------------------"
     echo ""
     echo "The NXT can communicate wirelessly with devices which support the"
