@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # 
 # *************************************************************************************************
-# [common-sysconfig script]
+# [common-sysconfig module]
 # *************************************************************************************************
-name="firmware"
-longname="Lego Mindstorms Firmware Package"
+module="firmware"
+name="Lego Mindstorms Firmware Package"
 description="Install Mindstorms Firmware"
 longdescription=\
 "This script installs a variety of Mindstorms firmware to the system so it is accessible for all users. Both official Lego firmware and unofficial 3rd-party binaries are included.

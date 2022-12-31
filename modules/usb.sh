@@ -1,21 +1,25 @@
 #!/usr/bin/env bash
 # 
 # *************************************************************************************************
-# [common-sysconfig script]
+# [common-sysconfig module]
 # *************************************************************************************************
-name="usb"
-longname="Mindstorms USB Configuration"
+module="usb"
+name="Mindstorms USB Configuration"
 description="Install Mindstorms USB Configuration"
 longdescription=\
 "UDEV rules are required for user access to hardware devices, including all Mindstorms devices. Without this configuration, all tools will require 'sudo' (root) privilege and many scripts will break.
 Where applicable, kernel modules will be enabled so Mindstorms devices always have the correct drivers available."
 requires=""
+# *************************************************************************************************
+
+
+
+
 
 function verify() {
     [[ -f "/etc/udev/rules.d/50-pbrick.rules" ]];
 }
-if [[ "$1" == "--verify-only" ]]; then verify; exit $?; fi
-# *************************************************************************************************
+if [[ "$1" == "-verify-only" ]]; then verify; exit $?; fi
 
 
 

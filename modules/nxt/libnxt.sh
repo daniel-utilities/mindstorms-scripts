@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # 
 # *************************************************************************************************
-# [common-sysconfig script]
+# [common-sysconfig module]
 # *************************************************************************************************
-name="libnxt"
-longname="LibNXT"
+module="libnxt"
+name="LibNXT"
 description="Install LibNXT"
 longdescription=\
 "LibNXT provides a linkable binary and C headers for developing software which communicates with the NXT brick using libusb.

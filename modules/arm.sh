@@ -3,15 +3,16 @@
 # *************************************************************************************************
 # [common-sysconfig script]
 # *************************************************************************************************
-name="nxtosek"
-longname="NXTOSEK - Real-time OS for C/C++ development on the NXT"
-description="Install NXTOSEK"
+module="arm"
+name="ARM EABI Cross Compiler"
+description="Install ARM EABI Compiler"
 longdescription=\
-""
-requires="usb libnxt nexttool arm"
+"The ARM EABI cross-compiler (gcc-arm-none-eabi) compiles source code into executable binaries for ARM processors, such as those found in the NXT and EV3 bricks.
+It is a required component for firmware development and for some programming environments (nxOS, nxtOSEK, etc)."
+requires="usb"
 
 function verify() {
-    [[ -d "/opt/nxtosek" ]];
+    [[ -x "$(command -v gcc-arm-non-eabi)" ]];
 }
 if [[ "$1" == "--verify-only" ]]; then verify; exit $?; fi
 # *************************************************************************************************

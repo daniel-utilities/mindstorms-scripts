@@ -1,3 +1,0 @@
-[submodule "scripts/bash-common-scripts"]
-	path = scripts/bash-common-scripts
-	url = https://github.com/daniel-utilities/bash-common-scripts.git
