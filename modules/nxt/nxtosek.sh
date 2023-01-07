@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 
 # *************************************************************************************************
-# [common-sysconfig module]
+# [common-installer module]
 # *************************************************************************************************
 module="nxtosek"
 name="NXTOSEK - Real-time OS for C/C++ development on the NXT"

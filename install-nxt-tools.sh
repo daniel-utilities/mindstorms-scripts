@@ -5,24 +5,27 @@
 # ***************************************
 # Paths
 root_dir="$(dirname "$(readlink -f "$0")")"
-scripts_dir="$root_dir/scripts"
-config_dir="$root_dir/config"
 bin_dir="$root_dir/bin"
+config_dir="$root_dir/config"
+modules_dir="$root_dir/modules"
+scripts_dir="$root_dir/scripts"
+logfile="$root_dir/nxt-tools.log"
+module_searchpaths=( "$modules_dir" "$modules_dir/nxt" )
+
+# System paths
 global_bin="/usr/local/bin"     # Executable binaries
 global_lib="/usr/local/lib"     # Precompiled sources (.a, .so)
 global_src="/usr/local/src"     # Source code
 global_inc="/usr/local/include" # Headers
 global_etc="/usr/local/etc"     # Config files, etc.
 global_opt="/opt"               # Large "features"; ROS, Java, etc.
-logfile="$root_dir/nxt-tools.log"
-module_paths=( "$scripts_dir" "$scripts_dir/nxt" )
 
 # Import functions
 sources=(   "$scripts_dir/bash-common-scripts/common-functions.sh" 
-            "$scripts_dir/bash-common-scripts/common-tables.sh"        
             "$scripts_dir/bash-common-scripts/common-io.sh"        
             "$scripts_dir/bash-common-scripts/common-ui.sh"        
-            "$scripts_dir/bash-common-scripts/common-sysconfig.sh"         )
+            "$scripts_dir/bash-common-scripts/common-tables.sh"        
+            "$scripts_dir/bash-common-scripts/common-installer.sh"         )
 for i in "${sources[@]}"; do
     if [ -e "$i" ]; then
         source "$i"
@@ -34,58 +37,6 @@ for i in "${sources[@]}"; do
         exit 1
     fi
 done
-
-# find_sysconfig_modules {tablename} {searchpath}
-function find_sysconfig_modules() {
-    local -n _tab=$1
-    local searchpath="$2"
-
-    local file val
-    local -A required_keys=( [module]="" [name]="" [description]="" )
-    local -A optional_keys=( [requires]="" [longdescription]="" )
-    local properties="filepath verified ${!required_keys[@]} ${!optional_keys[@]}"
-
-    if ! is_table _tab; then
-        table_create _tab -colnames "$properties"
-    fi
-
-    printf "Searching for sysconfig modules in $searchpath...\n"
-    for file in "$searchpath"/*; do
-        # Only search .sh files
-        if [[ ! -f "$file" ]]; then continue; fi
-        if [[ "$file" != *.sh ]]; then continue; fi
-
-        # Must have module identifier
-        if ! has_line "$file" '\[common-sysconfig module\]' ; then continue; fi
-
-        # Scan file for the required keys; add them to the table
-        for key in ${!required_keys[@]}; do
-            find_key_value_pair val "$file" "$key"
-            required_keys["$key"]="$val"
-        done
-        if has_value required_keys "" ; then
-            printf "WARNING: Script identifies as a module but is missing required keys: $file"
-            continue
-        fi
-        printf "Found sysconfig module: %s\n" "${required_keys[module]}"
-        table_set_row _tab "${required_keys[module]}" required_keys
-        table_set     _tab "${required_keys[module]}" filepath "$file"
-
-        # Scan file for the optional keys; add them to the table
-        for key in ${!optional_keys[@]}; do
-            find_key_value_pair val "$file" "$key"
-            optional_keys["$key"]="$val"
-        done
-        table_set_row _tab "${required_keys[module]}" optional_keys
-
-        # Ask the script to verify its status
-        /usr/bin/env bash "$file" -verify-only
-        if [[ $? -eq 0 ]]; then table_set _tab "${required_keys[module]}" "verified" "$TRUE"
-        else                    table_set _tab "${required_keys[module]}" "verified" "$FALSE"
-        fi
-    done
-}
-
 
 # Menu configuration
 menu_title=$'Installer for Lego Mindstorms NXT Tools'
@@ -150,9 +101,10 @@ echo "" > "$logfile"
 
 # Search for installer modules
 declare -A modules=()
-for dir in "${module_paths[@]}"; do
+for dir in "${module_searchpaths[@]}"; do
     if [[ ! -d "$dir" ]]; then continue; fi
-    find_sysconfig_modules modules "$dir"
+    printf "Searching for installer modules in $dir...\n"
+    find_installer_modules modules "$dir"
 done
 printvar modules
 
