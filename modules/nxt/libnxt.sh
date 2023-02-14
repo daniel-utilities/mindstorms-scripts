@@ -4,8 +4,8 @@
 # [common-installer module]
 # *************************************************************************************************
 module="libnxt"
-name="LibNXT"
-description="Install LibNXT"
+description="LibNXT"
+title="Install LibNXT"
 longdescription=\
 "LibNXT provides a linkable binary and C headers for developing software which communicates with the NXT brick using libusb.
 It also provides two command-line utilities which are required components of some toolchains:

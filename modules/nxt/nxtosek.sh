@@ -4,10 +4,9 @@
 # [common-installer module]
 # *************************************************************************************************
 module="nxtosek"
-name="NXTOSEK - Real-time OS for C/C++ development on the NXT"
-description="Install NXTOSEK"
-longdescription=\
-""
+description="NXTOSEK - Real-time OS for C/C++ development on the NXT"
+title="Install NXTOSEK"
+longdescription=""
 requires="usb libnxt nexttool arm"
 
 function verify() {

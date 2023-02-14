@@ -4,10 +4,9 @@
 # [common-installer module]
 # *************************************************************************************************
 module="bt"
-name="Bluetooth Device Configuration"
-description="Install Bluetooth Support for Mindstorms NXT"
-longdescription=\
-"The NXT can communicate wirelessly with devices which support the Bluetooth Serial Port Profile (SPP). This device will be configured for SPP communication with NXT bricks."
+description="Bluetooth Device Configuration"
+title="Install Bluetooth Support for Mindstorms NXT"
+longdescription="The NXT can communicate wirelessly with devices which support the Bluetooth Serial Port Profile (SPP). This device will be configured for SPP communication with NXT bricks."
 requires=""
 
 function verify() {

@@ -4,8 +4,8 @@
 # [common-installer module]
 # *************************************************************************************************
 module="firmware"
-name="Lego Mindstorms Firmware Package"
-description="Install Mindstorms Firmware"
+description="Lego Mindstorms Firmware Package"
+title="Install Mindstorms Firmware"
 longdescription=\
 "This script installs a variety of Mindstorms firmware to the system so it is accessible for all users. Both official Lego firmware and unofficial 3rd-party binaries are included.
 See the README in the install directory for details."

@@ -4,11 +4,9 @@
 # [common-installer module]
 # *************************************************************************************************
 module="nexttool"
-name="NeXTTool"
-description="Install NeXTTool"
-longdescription=\
-"NeXTTool is a command-line utility for interacting with the NXT brick. It is primarily used to download files and firmware to the NXT brick, but also provides various monitoring and remote-control functionality when used with firmware variants based on the official Lego distributions.
-It is a required component of some toolchains (MATLAB RWTH, nxtOSEK, etc)."
+description="NeXTTool"
+title="Install NeXTTool"
+longdescription="NeXTTool is a command-line utility for interacting with the NXT brick. It is primarily used to download files and firmware to the NXT brick, but also provides various monitoring and remote-control functionality (when used with firmware variants based on the official Lego distributions). It is a required component of some toolchains (MATLAB RWTH, nxtOSEK, etc)."
 requires="usb"
 
 function verify() {
