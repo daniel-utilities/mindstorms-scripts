@@ -1,28 +1,34 @@
 #!/usr/bin/env bash
-# 
+
 # *************************************************************************************************
 # [common-installer module]
 # *************************************************************************************************
+#
+# Required identifier; does not need to be set to anything
+#
+__COMMON_INSTALLER_MODULE__=
+#
+# Required keys: Must be nonempty
+#
 module="firmware"
-description="Lego Mindstorms Firmware Package"
-title="Install Mindstorms Firmware"
-longdescription=\
+title="Lego Mindstorms Firmware Package"
+#
+# Optional keys: May be empty or omitted entirely
+#
+requires=""
+description=\
 "This script installs a variety of Mindstorms firmware to the system so it is accessible for all users. Both official Lego firmware and unofficial 3rd-party binaries are included.
 See the README in the install directory for details."
-requires=""
-
-function verify() {
-    [[ -d "/usr/local/etc/mindstorms/firmware" ]];
-}
-if [[ "$1" == "--verify-only" ]]; then verify; exit $?; fi
+author=""
+email=""
+website="https://github.com/daniel-utilities/mindstorms-scripts"
+hidden="false"
+#
 # *************************************************************************************************
 
 
+exit 0
 
-local -A fnargs=( ["config"]="./config" 
-                    ["install"]="/usr/local/bin" )
-fast_argparse fnargs "" "config install" "$@"
-local config_dir="${fnargs[config]}"
-local install_dir="${fnargs[install]}"
-local original_dir="$pwd"
-local userhome; get_user_home userhome
+function module_check() {
+    [[ -d "/usr/local/etc/mindstorms/firmware" ]];
+}

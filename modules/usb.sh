@@ -1,151 +1,162 @@
 #!/usr/bin/env bash
-# 
-# *************************************************************************************************
-# [common-installer module]
-# *************************************************************************************************
+
+###############################################################################
+####                       [common-installer module]                       ####
+###############################################################################
+
+#   [required]
+#       __COMMON_INSTALLER_MODULE__     Base filename of this module.
+#
+__COMMON_INSTALLER_MODULE__="$(basename -s .sh "$0")"
+
+
+#   [required]
+#       module              Name which represents this module.
+#       title               Longer, more descriptive name. Max 40 characters.
+#
 module="usb"
-description="Mindstorms USB Configuration"
-title="Install Mindstorms USB Configuration"
-longdescription=\
-"UDEV rules are required for user access to hardware devices, including all Mindstorms devices. Without this configuration, all tools will require 'sudo' (root) privilege and many scripts will break.
-Where applicable, kernel modules will be enabled so Mindstorms devices always have the correct drivers available."
+title="Mindstorms USB Configuration"
+
+
+#   [optional]
+#       requires            List of modules on which this module depends
+#       author              Author(s) of software associated with this module
+#       email               Email address of author
+#       website             Web address most closely associated with this software
+#       hidden              If "true", hides this module from the UI menu.
+#
 requires=""
+author=""
+email=""
+website="https://github.com/daniel-utilities/mindstorms-scripts"
 hidden="false"
-# *************************************************************************************************
 
+###############################################################################
 
-#   # Default System paths
-#   args["global_bin"]="/usr/local/bin"     # Executable binaries
-#   args["global_lib"]="/usr/local/lib"     # Precompiled sources (.a, .so)
-#   args["global_src"]="/usr/local/src"     # Source code
-#   args["global_inc"]="/usr/local/include" # Headers
-#   args["global_etc"]="/usr/local/etc"     # Config files, etc.
-#   args["opt"]="/opt"                      # Large "features"; ROS, Java, etc.
+#   [required]
+#   1.  module_init()       Initialization routines, global variable definitions, etc.
+#                               To define global variables, use:  declare -g NAME
+#                               Variables defined here will be defined in all other functions.
+#   2.  module_check()      Returns the installation status of this module.
+#                               return $__MODULE_STATUS_INSTALLED__
+#                               return $__MODULE_STATUS_NOT_INSTALLED__
+#                               return $__MODULE_STATUS_UNKNOWN__
+#   3.  module_info()       Print info text about the module.
+#                               This function outputs to the terminal, but not to __LOGFILE__.
+#   4.  module_run()        Main body of module code.
+#                               Any command which returns a non-0 exit value will immediately terminate the module.
+#                               All output of this function is logged to __LOGFILE__ .
+#   5.  module_exit()       Callback which executes when script exits.
+#                               __TEMP_DIR__ is automatically deleted after module_exit completes.
+#
+#       Within each of these functions, the following global variables are defined:
+#         __ARGS__                        Associative array containing all command-line values passed to the module loader.
+#         __LOGFILE__                     Path to log file. All stdout and stderr is logged to this file automatically.
+#         __AUTOCONFIRM__                 If $__AUTOCONFIRM__ == $TRUE, user confirmation prompts are suppressed.
+#         __COMMON_INSTALLER_LOADER__     Base filename of the loader which started this module. 
+#         __COMMON_SCRIPTS_PATH__         Path to directory containing common-*.sh
+#         __TERMINAL_WIDTH__              Width of the current terminal window, in characters.
+#         __TEMP_DIR__                    Temporary directory dedicated for use by this module.
+#
+#   
+function module_init() {
+    # Check that the required environment variables are defined. They should've been exported by the module loader.
+    [[ -v __PROJECT_ROOT__ ]];
+    [[ -v __PROJECT_BIN__ ]];
+    [[ -v __PROJECT_CONFIG__ ]];
+    [[ -v __PROJECT_MODULES__ ]];
+    [[ -v __PROJECT_SCRIPTS__ ]];
 
-#   # Default Local (user-specific) paths
-#   args["local_bin"]="$HOME/.local/bin"
-#   args["local_lib"]="$HOME/.local/lib"
-#   args["local_src"]="$HOME/.local/src"
-#   args["local_inc"]="$HOME/.local/include"
-#   args["local_etc"]="$HOME/.local/etc"
+    # Global variables
+    declare -g  REPO_URL="https://github.com/pybricks/pbrick-rules.git"
+    declare -g  REPO_BRANCH="main"
+    declare -g  REPO_NAME=""; get_basename REPO_NAME "$REPO_URL" ; REPO_NAME="${REPO_NAME%.*}"
+    declare -g  REPO_DIR="$__TEMP_DIR__/$REPO_NAME"
+    declare -ga INSTALL_FILES=(
+        "$REPO_DIR/debian/pbrick-rules.pbrick.udev     : /etc/udev/rules.d/50-pbrick.rules"
+        "$__PROJECT_CONFIG__/udev/70-nxt.rules         : /etc/udev/rules.d/70-nxt.rules"
+        "$__PROJECT_CONFIG__/udev/nxt_event_handler.sh : /etc/udev/nxt_event_handler.sh"
+    )
+    declare -ga PERMGROUPS=(
+        plugdev dialout
+    )
 
-
-function verify() {
-    [[ -f "/etc/udev/rules.d/50-pbrick.rules" ]];
+    # Require that the script was not run as a root user
+    require_non_root
 }
 
 
-# Default Project Paths
-declare -A proj=()
-proj["root"]="$PWD"
-proj["work"]="$PWD"
-proj["bin"]="${proj[root]}/bin"
-proj["config"]="${proj[root]}/config"
-proj["scripts"]="${proj[root]}/scripts"
-
-# Parse Args (first pass)
-case "$1" in
-    "-verify-only" )  verify ;;
-    "-scripts" )      proj["scripts"]="$2" ;;
-esac
-
-# Import functions
-sources=(   "${proj[scripts]}/bash-common-scripts/common-functions.sh" 
-            "${proj[scripts]}/bash-common-scripts/common-io.sh"        
-            "${proj[scripts]}/bash-common-scripts/common-ui.sh"        
-            "${proj[scripts]}/bash-common-scripts/common-tables.sh"        
-            "${proj[scripts]}/bash-common-scripts/common-installer.sh"         )
-for i in "${sources[@]}"; do
-    if [ -e "$i" ]; then
-        source "$i"
-    else
-        echo "Error - could not find required source: $i"
-        echo "Please run:"
-        echo "  git submodule update --init --recursive"
-        echo ""
-        exit 1
-    fi
-done
-require_non_root
-
-# Default Arg Values
-declare -A args; copy_array proj args
-args["confirm"]="true"
-args["user"]="root"
-args["installpath"]="/usr/local"
-
-# Parse Args (second pass)
-printf -v paramlist "%s " "${!args[@]}"
-fast_argparse args "" "$paramlist" "$@"
-printf "Module: [%s]\n" "$module"
-printf "  - Requires:\n" "$requires"
-printf "  - Params:\n"
-print_var args -showname "false"
-
-# Display UI
-get_term_width terminal_width
-(( titlebox_width = "${#title}" + 4 ))
-get_title_box titlebox "$title" -width "$titlebox_width" -top '#' -side '#' -corner '#'
-printf "\n%s\n" "$titlebox"
-wrap_string wrapped_description "$longdescription" "$terminal_width"
-printf "%s\n" "$wrapped_description"
-
-exit 0
+function module_check() {
+    [[ ! -e "/etc/udev/rules.d/50-pbrick.rules" ]] && return $__MODULE_STATUS_NOT_INSTALLED__
+    return $__MODULE_STATUS_INSTALLED__
+}
 
 
+function module_info() {
+    echo "UDEV rules are required for user access to hardware devices, including all Mindstorms devices. Without this configuration, all tools will require 'sudo' (root) privilege and many scripts will break."
+    echo "Where applicable, kernel modules will be enabled so Mindstorms devices always have the correct drivers available."
+    echo ""
+    echo "Repository \"$REPO_NAME\" will be downloaded:"
+    echo "  URL:    $REPO_URL"
+    [[ "$REPO_BRANCH" != "" ]] && echo "  Branch: $REPO_BRANCH"
+    echo "  Path:   $REPO_DIR"
+    echo ""
+    echo "The following files will be installed:"
+    print_var INSTALL_FILES -showname "false" -wrapper ""
+    echo ""
+    echo "User '$USER' will be added to the following groups:"
+    echo "  ${PERMGROUPS[@]}"
+    echo ""
+}
 
 
-local config_dir="${fnargs[config]}"
+function module_run() {
+    echo "Downloading repository: $REPO_NAME"
+    cd "$__TEMP_DIR__"
+    git_latest "$REPO_URL" "$REPO_BRANCH"
+    echo ""
 
-local url="https://github.com/daniel-contrib/pbrick-rules.git"
-local branch=main
-local repo="$(basename $url .git)"
-local repo_dir="/tmp/$repo"
+    echo "Installing UDEV rules..."
+    multi_copy INSTALL_FILES -mkdir "false" -overwrite "false" -su "true"
+    echo ""
 
-local -a install_files=(
-    "$repo_dir/debian/pbrick-rules.pbrick.udev : /etc/udev/rules.d/50-pbrick.rules"
-    "$config_dir/udev/70-nxt.rules         : /etc/udev/rules.d/70-nxt.rules"
-    "$config_dir/udev/nxt_event_handler.sh : /etc/udev/nxt_event_handler.sh"
-)
-local -a permgroups=(
-    plugdev dialout users
-)
+    for groupname in "${PERMGROUPS[@]}"; do
+        echo "Adding user $USER to group $groupname..."
+        sudo groupadd -f "$groupname"
+        sudo usermod -aG "$groupname" $USER
+    done
+    echo ""
 
-echo "The following repository will be downloaded:" 
-echo "  URL:    $url"
-echo "  Branch: $branch"
-echo "  Path:   $repo_dir"
-echo ""
-echo "The following files will be installed:" 
-print_var install_files -showname false -wrapper ""
-echo ""
-echo "User '$USER' will be added to the following groups:"
-echo "  ${permgroups[@]}"
-echo ""
-if ! confirmation_prompt; then return 0; fi
-echo ""
+    echo "Reloading UDEV rules..."
+    sudo udevadm control --reload-rules
+    sudo udevadm trigger
+}
 
-echo ""
-echo "Downloading repository: $repo"
-cd "/tmp"
-git_latest "$url" "$branch"
 
-echo ""
-echo "Installing UDEV rules..."
-multicopy install_files
+function module_exit() {
+    :
+}
 
-echo ""
-for groupname in ${permgroups[@]}; do
-    echo "Adding $USER to group $groupname..."
-    sudo groupadd -f $groupname
-    sudo usermod -aG $groupname $USER
-done
+###############################################################################
 
-echo ""
-echo "Reloading UDEV rules..."
-sudo udevadm control --reload-rules
-sudo udevadm trigger
+#   [required]
+#       source "$__COMMON_SCRIPTS_PATH__/common-installer.sh"   Import the required functions and other dependencies.
+#       begin_module "$@"                                       Starts the module.
+#
+if [[ ! -v __COMMON_INSTALLER_LOADER__ || ! -v __COMMON_SCRIPTS_PATH__ ]]; then
+    echo "Error: $(basename -s .sh "$0") is a [common-installer module]"
+    echo "  and can only be run by a [common-installer loader]."
+    echo ""
+    exit 1
+fi
+source "$__COMMON_SCRIPTS_PATH__/common-installer.sh"
+if [[ "$?" -ne 0 ]]; then
+    echo "Error loading required source: $__COMMON_SCRIPTS_PATH__/common-installer.sh"
+    echo "Please run:"
+    echo "  git submodule update --init --recursive"
+    echo ""
+    exit 1
+fi
+begin_module "$@"
 
-echo ""
-echo "Installation complete."
-pause
+###############################################################################

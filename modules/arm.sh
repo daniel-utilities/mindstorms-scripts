@@ -1,28 +1,33 @@
 #!/usr/bin/env bash
-# 
+
 # *************************************************************************************************
 # [common-installer module]
 # *************************************************************************************************
+#
+# Required identifier; does not need to be set to anything
+#
+__COMMON_INSTALLER_MODULE__=
+#
+# Required keys: Must be nonempty
+#
 module="arm"
-description="ARM EABI Cross Compiler"
-title="Install ARM EABI Compiler"
-longdescription=\
+title="ARM Cross Compiler (arm-none-eabi)"
+#
+# Optional keys: May be empty or omitted entirely
+#
+requires=""
+description=\
 "The ARM EABI cross-compiler (gcc-arm-none-eabi) compiles source code into executable binaries for ARM processors, such as those found in the NXT and EV3 bricks.
 It is a required component for firmware development and for some programming environments (nxOS, nxtOSEK, etc)."
-requires=""
-
-function verify() {
-    [[ -x "$(command -v gcc-arm-non-eabi)" ]];
-}
-if [[ "$1" == "--verify-only" ]]; then verify; exit $?; fi
+author="Daniel Kennedy"
+email=""
+website="https://github.com/daniel-utilities/mindstorms-scripts"
+hidden="false"
+#
 # *************************************************************************************************
 
+exit 0
 
-
-local -A fnargs=( ["config"]="./config" 
-                  ["install"]="/usr/local/bin" )
-fast_argparse fnargs "" "config install" "$@"
-local config_dir="${fnargs[config]}"
-local install_dir="${fnargs[install]}"
-local original_dir="$pwd"
-local userhome; get_user_home userhome
+function module_check() {
+    [[ -x "$(command -v gcc-arm-non-eabi)" ]];
+}

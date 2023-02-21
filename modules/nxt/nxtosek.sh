@@ -1,26 +1,31 @@
 #!/usr/bin/env bash
-# 
+
 # *************************************************************************************************
 # [common-installer module]
 # *************************************************************************************************
+#
+# Required identifier; does not need to be set to anything
+#
+__COMMON_INSTALLER_MODULE__=
+#
+# Required keys: Must be nonempty
+#
 module="nxtosek"
-description="NXTOSEK - Real-time OS for C/C++ development on the NXT"
-title="Install NXTOSEK"
-longdescription=""
+title="NXT-OSEK Development Tools"
+#
+# Optional keys: May be empty or omitted entirely
+#
 requires="usb libnxt nexttool arm"
-
-function verify() {
-    [[ -d "/opt/nxtosek" ]];
-}
-if [[ "$1" == "--verify-only" ]]; then verify; exit $?; fi
+description="NXT-OSEK is a Real-time Operating System (RTOS) kernel for the Mindstorms NXT. This module installs the necessary source code and C/C++ development toolchain for working with NXT-OSEK."
+author="Takashi Chikamasa et. al."
+email=""
+website="https://lejos-osek.sourceforge.net/whatislejososek.htm"
+hidden="false"
+#
 # *************************************************************************************************
 
+exit 0
 
-
-local -A fnargs=( ["config"]="./config" 
-                    ["install"]="/usr/local/bin" )
-fast_argparse fnargs "" "config install" "$@"
-local config_dir="${fnargs[config]}"
-local install_dir="${fnargs[install]}"
-local original_dir="$pwd"
-local userhome; get_user_home userhome
+function module_check() {
+    [[ -d "/opt/nxtosek" ]];
+}

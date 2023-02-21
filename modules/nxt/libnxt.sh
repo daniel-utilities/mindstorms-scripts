@@ -1,32 +1,42 @@
 #!/usr/bin/env bash
-# 
+
 # *************************************************************************************************
 # [common-installer module]
 # *************************************************************************************************
+#
+# Required identifier; does not need to be set to anything
+#
+__COMMON_INSTALLER_MODULE__=
+#
+# Required keys: Must be nonempty
+#
 module="libnxt"
-description="LibNXT"
-title="Install LibNXT"
-longdescription=\
+title="LibNXT (fwflash, fwexec)"
+#
+# Optional keys: May be empty or omitted entirely
+#
+requires="usb"
+description=\
 "LibNXT provides a linkable binary and C headers for developing software which communicates with the NXT brick using libusb.
 It also provides two command-line utilities which are required components of some toolchains:
  -  fwflash: Downloads firmware to an NXT brick.
  -  fwexec:  Runs a specially-compiled binary directly in the NXT's RAM."
-requires="usb"
-
-function verify() {
-    [[ -x "$(command -v fwflash)" && -x "$(command -v fwexec)" ]];
-}
-if [[ "$1" == "--verify-only" ]]; then verify; exit $?; fi
+author=""
+email=""
+website="https://github.com/daniel-utilities/mindstorms-scripts"
+hidden="false"
+#
 # *************************************************************************************************
 
+exit 0
+
+function module_check() {
+    [[ -x "$(command -v fwflash)" && -x "$(command -v fwexec)" ]];
+}
 
 
-local -A fnargs=( ["config"]="./config" 
-                    ["install"]="/usr/local/bin" )
-fast_argparse fnargs "" "config install" "$@"
-local config_dir="${fnargs[config]}"
+
 local install_dir="${fnargs[install]}"
-local original_dir="$pwd"
 
 local -a packages=(
     git gcc g++ build-essential libusb-1.0-0-dev meson gcc-arm-none-eabi scdoc python3
@@ -63,15 +73,7 @@ local -a install_files=(
     "$repo_dir/flash_write/crt0.s    :  /usr/local/src/libnxt/flash_write/crt0.s"
 )
 
-echo ""
-echo "--------------------------------------------------------------------------------"
-echo "                                   LibNXT"
-echo "--------------------------------------------------------------------------------"
-echo ""
-echo "LibNXT is a set of command-line utilities for communicating with the NXT brick."
-echo "  fwflash: downloads firmware to the brick."
-echo "  fwexec:  runs a specially-compiled code directly in RAM."
-echo "It also provides C headers for developing software which talks to the brick."
+
 echo ""
 if [ -x "$(command -v fwflash)" ]; then
     echo "LibNXT is already installed."
@@ -117,7 +119,6 @@ sudo chmod +x "$install_dir/fwexec"
 echo ""
 echo "Cleaning up..."
 #rm -rf "$repo_dir"
-cd "$original_dir"
 
 echo ""
 echo "Installation complete."

@@ -1,26 +1,40 @@
 #!/usr/bin/env bash
-# 
+
 # *************************************************************************************************
 # [common-installer module]
 # *************************************************************************************************
+#
+# Required identifier; does not need to be set to anything
+#
+__COMMON_INSTALLER_MODULE__=
+#
+# Required keys: Must be nonempty
+#
 module="nexttool"
-description="NeXTTool"
-title="Install NeXTTool"
-longdescription="NeXTTool is a command-line utility for interacting with the NXT brick. It is primarily used to download files and firmware to the NXT brick, but also provides various monitoring and remote-control functionality (when used with firmware variants based on the official Lego distributions). It is a required component of some toolchains (MATLAB RWTH, nxtOSEK, etc)."
+title="NeXTTool Utility (nexttool)"
+#
+# Optional keys: May be empty or omitted entirely
+#
 requires="usb"
-
-function verify() {
-    [[ -x "$(command -v nexttool)" ]];
-}
-if [[ "$1" == "--verify-only" ]]; then verify; exit $?; fi
+description="NeXTTool is a command-line utility for interacting with the NXT brick. It is primarily used to download files and firmware to the NXT brick, but also provides various monitoring and remote-control functionality (when used with firmware variants based on the official Lego distributions). It is a required component of some toolchains (MATLAB RWTH, nxtOSEK, etc)."
+author="John Hansen"
+email=""
+website="https://bricxcc.sourceforge.net/"
+hidden="false"
+#
 # *************************************************************************************************
 
+exit 0
+
+function module_check() {
+    [[ -x "$(command -v nexttool)" ]];
+}
 
 
-local -A fnargs=( ["config"]="./config" 
-                    ["install"]="/usr/local/bin" )
-fast_argparse fnargs "" "config install" "$@"
-local config_dir="${fnargs[config]}"
+
+
+
+local __PROJECT_CONFIG__="${fnargs[config]}"
 local install_dir="${fnargs[install]}"
 local original_dir="$pwd"
 local userhome; get_user_home userhome
@@ -36,7 +50,7 @@ local install_dir="/usr/local/bin"
 
 local -a install_files=(
     "$repo_dir/code/nexttool        : $install_dir/nexttool"
-    "$config_dir/bricxcc/bricks.dat : $userhome/bricxcc/bricks.dat"
+    "$__PROJECT_CONFIG__/bricxcc/bricks.dat : $userhome/bricxcc/bricks.dat"
 )
 echo ""
 echo "--------------------------------------------------------------------------------"
@@ -88,7 +102,7 @@ echo ""
 echo "Installing files..."
 sudo cp -f "$repo_dir/code/nexttool" "$install_dir/nexttool"
 sudo chmod +x "$install_dir/nexttool"
-cp -rnv "$config_dir/bricxcc" "$userhome/bricxcc"
+cp -rnv "$__PROJECT_CONFIG__/bricxcc" "$userhome/bricxcc"
 
 echo ""
 echo "Cleaning up..."
