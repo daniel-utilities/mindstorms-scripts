@@ -1,125 +1,251 @@
 #!/usr/bin/env bash
 
-# *************************************************************************************************
-# [common-installer module]
-# *************************************************************************************************
-#
-# Required identifier; does not need to be set to anything
-#
-__COMMON_INSTALLER_MODULE__=
-#
-# Required keys: Must be nonempty
-#
-module="libnxt"
-title="LibNXT (fwflash, fwexec)"
-#
-# Optional keys: May be empty or omitted entirely
-#
-requires="usb"
-description=\
-"LibNXT provides a linkable binary and C headers for developing software which communicates with the NXT brick using libusb.
-It also provides two command-line utilities which are required components of some toolchains:
- -  fwflash: Downloads firmware to an NXT brick.
- -  fwexec:  Runs a specially-compiled binary directly in the NXT's RAM."
-author=""
-email=""
-website="https://github.com/daniel-utilities/mindstorms-scripts"
-hidden="false"
-#
-# *************************************************************************************************
+###############################################################################
+####                       [common-installer module]                       ####
+###############################################################################
+####                                                                       ####
+####    In each [required] section below, modify the definitions to fit    ####
+####    the application. Any [optional] sections may be omitted or blank.  ####
+####                                                                       ####
+###############################################################################
+#   Do not edit this section!
+__MODULE_TEMPLATE_VERSION__="1.0"
 
-exit 0
 
-function module_check() {
-    [[ -x "$(command -v fwflash)" && -x "$(command -v fwexec)" ]];
+###############################################################################
+####                         VARIABLE DEFINITIONS                          ####
+###############################################################################
+
+#   [required]
+#       MODULE              Name which represents this module. No spaces.
+#       TITLE               Longer, more descriptive name. Max 40 characters.
+#
+MODULE="libnxt"
+TITLE="LibNXT (fwflash, fwexec)"
+
+
+#   [optional]
+#       REQUIRES            Space-separated list of modules on which this module depends
+#       AUTHOR              Author(s) of software associated with this module
+#       EMAIL               Email address of author
+#       WEBSITE             Web address most closely associated with this software
+#       HIDDEN              If "true", hides this module from the UI menu.
+#
+REQUIRES="usb"
+AUTHOR="David Anderson, Lawrie Griffiths, Nicolas Schodet"
+EMAIL=""
+WEBSITE="https://github.com/schodet/libnxt"
+HIDDEN="false"
+
+
+#   [optional]
+#       ****                Define additional global variables in this section.
+#                           These will be accessible by all module functions.
+#       
+
+
+###############################################################################
+####                         FUNCTION DEFINITIONS                          ####
+###############################################################################
+
+#   [required]
+#     on_import
+#         Called after module is sourced and validated.
+#         May use this to initialize global variables, perform system checks, or cancel the import.
+#         Function may not modify the system.
+#     on_status_check
+#         Check and return the installation status of this module.
+#         Function may not modify the system.
+#     on_print
+#         Print information about what system changes will be made during the installation process.
+#         Function may not modify the system.
+#     on_install
+#         Install the module. Called after permission is granted to make changes to the system.
+#     on_exit
+#         Run installation clean-up tasks.
+#         Called after on_install, regardless if on_install completed successfully or not.
+#
+#     Within each of these functions, the following global variables are guaranteed to be defined:
+#         __ARGS__                 Associative array containing all command-line values passed to the module loader.
+#         __AUTOCONFIRM__          If $__AUTOCONFIRM__ == $TRUE, the module was started in unattended mode (all user input prompts should be suppressed).
+#         __ALLOW_ROOT__           If $__ALLOW_ROOT__ == $TRUE, the user has specified that the module should not prevent being run as root.
+#         __FORCE__                If $__FORCE__ == $TRUE, the module is reinstalled even if it is already installed.
+#         __LOADER_BASE_NAME__     Base filename of the loader which started this module. 
+#         __LOGFILE__              Path to log file. All stdout and stderr is logged to this file automatically (do not write to this!)
+#         __TERMINAL_WIDTH__       Width of the current terminal window, in characters.
+#         __TEMP_DIR__             Temporary directory dedicated to the module loader.
+#
+#   
+
+
+#   [required]
+#     on_import
+#         Called after module is sourced and validated.
+#         May use this to initialize global variables, perform system checks, or cancel the import.
+#         Function may not modify the system.
+#       Traps:
+#         ERR   If any command in this function returns a nonzero exit code, the script will exit.
+#       Inputs:
+#         None
+#       Outputs:
+#         $?    Numeric exit code. Return any nonzero value to cancel the module import.
+#
+function on_import() {
+    # Check these directories are set and valid. They should've been defined by the module loader.
+    [[ -d "$PROJECT_ROOT" ]]
+    [[ -d "$PROJECT_BIN" ]]
+    [[ -d "$PROJECT_CONFIG" ]]
+    [[ -d "$PROJECT_MODULES" ]]
+    [[ -d "$PROJECT_SCRIPTS" ]]
+
+    # Require that the script was not run as root (unless "--allow-root true" was specified on the command line)
+    [[ "$__ALLOW_ROOT__" == "$TRUE" ]] || require_non_root
+
+    # Set Global variables
+    declare -g INSTALL_PACKAGES_APT="git gcc g++ build-essential meson gcc-arm-none-eabi scdoc python3 libusb-1.0-0 libusb-1.0-0-dev"
+
+    declare -g REPO_URL="https://github.com/schodet/libnxt.git"
+    declare -g REPO_BRANCH="master"
+    declare -g REPO_NAME=""; get_basename REPO_NAME "$REPO_URL" ; REPO_NAME="${REPO_NAME%.*}"
+    declare -g REPO_DIR="$__TEMP_DIR__/$REPO_NAME"
+
+    declare -g INSTALL_PREFIX="${__ARGS__[prefix]:-/usr/local}"
+    clean_path INSTALL_PREFIX "$INSTALL_PREFIX"
+
+    declare -g INSTALL_FILES_BIN=(
+        "$REPO_DIR/build/fwflash   : $INSTALL_PREFIX/bin/"
+        "$REPO_DIR/build/fwexec    : $INSTALL_PREFIX/bin/"
+    )
+    declare -g INSTALL_FILES_LIB=(
+        "$REPO_DIR/build/*.a       : $INSTALL_PREFIX/lib/" 
+    )
+    declare -g INSTALL_FILES_INC=(
+        "$REPO_DIR/*.h             : $INSTALL_PREFIX/include/libnxt/"
+        "$REPO_DIR/build/*.h       : $INSTALL_PREFIX/include/libnxt/"
+        "$REPO_DIR/build/flash_write/crt0.o    : $INSTALL_PREFIX/include/libnxt/flash_write/"
+        "$REPO_DIR/build/flash_write/flash.bin : $INSTALL_PREFIX/include/libnxt/flash_write/"
+        "$REPO_DIR/build/flash_write/flash.elf : $INSTALL_PREFIX/include/libnxt/flash_write/"
+        "$REPO_DIR/build/flash_write/flash.o   : $INSTALL_PREFIX/include/libnxt/flash_write/"
+    )
+    declare -g INSTALL_FILES_SRC=(
+        "$REPO_DIR/*.c             : $INSTALL_PREFIX/src/libnxt/"
+        "$REPO_DIR/*.py            : $INSTALL_PREFIX/src/libnxt/"
+        "$REPO_DIR/flash_write/*.c : $INSTALL_PREFIX/src/libnxt/flash_write/"
+        "$REPO_DIR/flash_write/*.s : $INSTALL_PREFIX/src/libnxt/flash_write/"
+    )
 }
 
 
 
-local install_dir="${fnargs[install]}"
+#   [required]
+#     on_status_check
+#         Check and return the installation status of this module.
+#         Function may not modify the system.
+#       Inputs:
+#         None
+#       Outputs:
+#         $?    Numeric exit code. Must return one of the following:
+#                 return $__MODULE_STATUS_INSTALLED__
+#                 return $__MODULE_STATUS_NOT_INSTALLED__
+#                 return $__MODULE_STATUS_UNKNOWN__
+#
+function on_status_check() {
+    if [[ ! -x "$(command -v fwflash)" ]]; then
+        return $__MODULE_STATUS_NOT_INSTALLED__
+    fi
+    if [[ ! -x "$(command -v fwexec)" ]]; then
+        return $__MODULE_STATUS_NOT_INSTALLED__
+    fi
 
-local -a packages=(
-    git gcc g++ build-essential libusb-1.0-0-dev meson gcc-arm-none-eabi scdoc python3
-)
-
-local url="https://github.com/schodet/libnxt.git"
-local branch=master
-local repo="$(basename $url .git)"
-local repo_dir="/tmp/$repo"
-
-local -a install_files=(
-    "$repo_dir/build/fwflash      :  $install_dir/fwflash"
-    "$repo_dir/build/fwexec       :  $install_dir/fwexec"
-    "$repo_dir/build/liblibnxt.a  :  /usr/local/lib/liblibnxt.a"
-    "$repo_dir/error.h            :  /usr/local/include/libnxt/error.h"
-    "$repo_dir/firmware.h         :  /usr/local/include/libnxt/firmware.h"
-    "$repo_dir/flash.h            :  /usr/local/include/libnxt/flash.h"
-    "$repo_dir/lowlevel.h         :  /usr/local/include/libnxt/lowlevel.h"
-    "$repo_dir/samba.h            :  /usr/local/include/libnxt/samba.h"
-    "$repo_dir/build/flash_routine.h  :  /usr/local/include/libnxt/flash_routine.h"
-    "$repo_dir/build/flash_write/crt0.o  :  /usr/local/include/libnxt/flash_write/crt0.o"
-    "$repo_dir/build/flash_write/flash.bin  :  /usr/local/include/libnxt/flash_write/flash.bin"
-    "$repo_dir/build/flash_write/flash.elf  :  /usr/local/include/libnxt/flash_write/flash.elf"
-    "$repo_dir/build/flash_write/flash.o  :  /usr/local/include/libnxt/flash_write/flash.o"
-    "$repo_dir/error.c               :  /usr/local/src/libnxt/error.c"
-    "$repo_dir/firmware.c            :  /usr/local/src/libnxt/firmware.c"
-    "$repo_dir/flash.c               :  /usr/local/src/libnxt/flash.c"
-    "$repo_dir/lowlevel.c            :  /usr/local/src/libnxt/lowlevel.c"
-    "$repo_dir/samba.c               :  /usr/local/src/libnxt/samba.c"
-    "$repo_dir/main_fwexec.c         :  /usr/local/src/libnxt/main_fwexec.c"
-    "$repo_dir/main_fwflash.c        :  /usr/local/src/libnxt/main_fwflash.c"
-    "$repo_dir/make_flash_header.py  :  /usr/local/src/libnxt/make_flash_header.py"
-    "$repo_dir/flash_write/flash.c   :  /usr/local/src/libnxt/flash_write/flash.c"
-    "$repo_dir/flash_write/crt0.s    :  /usr/local/src/libnxt/flash_write/crt0.s"
-)
+    return $__MODULE_STATUS_INSTALLED__
+}
 
 
-echo ""
-if [ -x "$(command -v fwflash)" ]; then
-    echo "LibNXT is already installed."
-    if ! confirmation_prompt "Continue anyway?"; then return 0; fi
+
+#   [required]
+#     on_print
+#         Print information about what system changes will be made during the installation process.
+#         Function may not modify the system.
+#       Traps:
+#         ERR   If any command in this function returns a nonzero exit code, the script will exit.
+#       Inputs:
+#         None
+#       Outputs:
+#         &1    Function can print to stdout.
+#
+function on_print() {
+    echo "LibNXT provides a linkable binary and C headers for developing software which communicates with the NXT brick using libusb. It also provides two command-line utilities which are required components of some toolchains:"
+    echo "  -  fwflash: Downloads firmware to an NXT brick."
+    echo "  -  fwexec:  Runs a specially-compiled binary directly in the NXT's RAM."
     echo ""
-fi
-echo "The following APT packages will be installed:" 
-echo "  ${packages[@]}"
-echo ""
-echo "The following repository will be downloaded:" 
-echo "  URL:    $url"
-echo "  Branch: $branch"
-echo "  Path:   $repo_dir"
-echo ""
-echo "The following files will be installed:" 
-print_var install_files -showname false -wrapper ""
-echo ""
-if ! confirmation_prompt; then return 0; fi
-echo ""
+    echo "The following APT packages will be installed:" 
+    echo "  $INSTALL_PACKAGES_APT"
+    echo ""
+    echo "Repository \"$REPO_NAME\" will be downloaded:"
+    echo "  URL:    $REPO_URL"
+    [[ "$REPO_BRANCH" != "" ]] && echo "  Branch: $REPO_BRANCH"
+    echo "  Path:   $REPO_DIR"
+    echo ""
+    echo "Files will be installed to:"
+    echo "  Prefix: $INSTALL_PREFIX"
+    echo ""
+}
 
-echo ""
-echo "Downloading repository: $repo"
-cd "/tmp"
-git_latest "$url" "$branch"
 
-echo ""
-echo "Building LibNXT..."
-cd "$repo_dir"
-meson build
-cd build
-meson compile
 
-echo ""
-echo "Installing files..."
-sudo mkdir -p "/usr/local/include/libnxt" 2>&1 > /dev/null
-sudo mkdir -p "/usr/local/include/libnxt/flash_write" 2>&1 > /dev/null
-sudo mkdir -p "/usr/local/src/libnxt" 2>&1 > /dev/null
-sudo mkdir -p "/usr/local/src/libnxt/flash_write" 2>&1 > /dev/null
-multicopy install_files
-sudo chmod +x "$install_dir/fwflash"
-sudo chmod +x "$install_dir/fwexec"
+#   [required]
+#     on_install
+#         Install the module. Called after permission is granted to make changes to the system.
+#       Traps:
+#         ERR   If any command in this function returns a nonzero exit code, the script will exit.
+#         INT   If the user presses CTRL+C while this function is running, the script will exit.
+#         EXIT  If the script exits while within this function, the on_exit function will be called.
+#       Inputs:
+#         &0    Function can read from stdin. (Not recommended; user approval has already been granted.)
+#       Outputs:
+#         &1    Function can print to stdout.
+#
+function on_install() {
+    echo "Installing packages with apt-get:"
+    echo "  \"$APT_INSTALL\""
+    sudo apt-get update || echo "Warning: Failed apt-get update. Might fail apt-get install as well."
+    sudo apt-get -yq install $INSTALL_PACKAGES_APT
+    echo ""
 
-echo ""
-echo "Cleaning up..."
-#rm -rf "$repo_dir"
+    echo "Downloading repository: $REPO_NAME"
+    cd "$__TEMP_DIR__"
+    git_latest "$REPO_URL" "$REPO_BRANCH"
+    echo ""
 
-echo ""
-echo "Installation complete."
-pause
+    echo "Building LibNXT..."
+    cd "$REPO_DIR"
+    meson build
+    cd build
+    meson compile
+    echo ""
+
+    echo "Installing files..."
+    multi_copy INSTALL_FILES_LIB -mkdir "true" -overwrite "true" -su "auto"
+    multi_copy INSTALL_FILES_INC -mkdir "true" -overwrite "true" -su "auto"
+    multi_copy INSTALL_FILES_SRC -mkdir "true" -overwrite "true" -su "auto"
+    multi_copy INSTALL_FILES_BIN -mkdir "true" -overwrite "true" -su "auto" -chmod "+x"
+    echo ""
+}
+
+
+
+#   [required]
+#     on_exit
+#         Run installation clean-up tasks.
+#         Called after on_install, regardless if on_install completed successfully or not.
+#       Inputs:
+#         None
+#       Outputs:
+#         &1    Function can print to stdout.
+#
+function on_exit() {
+    echo "  Deleting $REPO_DIR..."
+    rm -rf "$REPO_DIR" &> /dev/null || sudo rm -rf "$REPO_DIR"
+}
+
+###############################################################################
