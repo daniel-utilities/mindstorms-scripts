@@ -9,7 +9,7 @@
 ####                                                                       ####
 ###############################################################################
 #   Do not edit this section!
-__MODULE_TEMPLATE_VERSION__="1.0"
+MODULE_TEMPLATE_VERSION="1.1"
 
 
 ###############################################################################
@@ -17,7 +17,7 @@ __MODULE_TEMPLATE_VERSION__="1.0"
 ###############################################################################
 
 #   [required]
-#       MODULE              Name which represents this module.
+#       MODULE              Name which represents this module. No spaces.
 #       TITLE               Longer, more descriptive name. Max 40 characters.
 #
 MODULE="usb"
@@ -48,8 +48,8 @@ REPO_NAME=""; get_basename REPO_NAME "$REPO_URL" ; REPO_NAME="${REPO_NAME%.*}"
 REPO_DIR="$__TEMP_DIR__/$REPO_NAME"
 INSTALL_FILES=(
     "$REPO_DIR/debian/pbrick-rules.pbrick.udev : /etc/udev/rules.d/50-pbrick.rules"
-    "$PROJECT_CONFIG/udev/70-nxt.rules         : /etc/udev/rules.d/70-nxt.rules"
-    "$PROJECT_CONFIG/udev/nxt_event_handler.sh : /etc/udev/nxt_event_handler.sh"
+    "$PROJECT_CONFIG_DIR/udev/70-nxt.rules         : /etc/udev/rules.d/70-nxt.rules"
+    "$PROJECT_CONFIG_DIR/udev/nxt_event_handler.sh : /etc/udev/nxt_event_handler.sh"
 )
 PERMGROUPS=(
     plugdev dialout
@@ -78,16 +78,18 @@ PERMGROUPS=(
 #         Called after on_install, regardless if on_install completed successfully or not.
 #
 #     Within each of these functions, the following global variables are guaranteed to be defined:
-#         __ARGS__                 Associative array containing all command-line values passed to the module loader.
-#         __AUTOCONFIRM__          If $__AUTOCONFIRM__ == $TRUE, the module was started in unattended mode (all user input prompts should be suppressed).
-#         __ALLOW_ROOT__           If $__ALLOW_ROOT__ == $TRUE, the user has specified that the module should not prevent being run as root.
-#         __FORCE__                If $__FORCE__ == $TRUE, the module is reinstalled even if it is already installed.
-#         __LOADER_BASE_NAME__     Base filename of the loader which started this module. 
-#         __LOGFILE__              Path to log file. All stdout and stderr is logged to this file automatically (do not write to this!)
-#         __TERMINAL_WIDTH__       Width of the current terminal window, in characters.
-#         __TEMP_DIR__             Temporary directory dedicated to the module loader.
+#         __ARGS__                  Associative array containing all command-line values passed to the module loader.
+#         __AUTOCONFIRM__           If $__AUTOCONFIRM__ == $TRUE, the module was started in unattended mode (all user input prompts should be suppressed).
+#         __ALLOW_ROOT__            If $__ALLOW_ROOT__ == $TRUE, the user has specified that the module should not prevent being run as root.
+#         __FORCE__                 If $__FORCE__ == $TRUE, the module is reinstalled even if it is already installed.
+#         __LOADER_SCRIPT_PATH__    Absolute path to the loader script which launched this module.
+#         __LOADER_BASENAME__       Filename of the loader script (without the .sh extension).
+#         __LOADER_DIR__            Absolute path to directory containing the loader script.
+#         __LOGFILE__               Absolute path to log file. All stdout and stderr is logged to this file automatically (do not write to this!).
+#         __TERMINAL_WIDTH__        Width of the current terminal window, in characters.
+#         __TEMP_DIR__              Temporary directory dedicated to the module loader.
 #
-#   
+ 
 
 
 #   [required]
@@ -104,11 +106,9 @@ PERMGROUPS=(
 #
 function on_import() {
     # Check these directories are set and valid. They should've been defined by the module loader.
-    [[ -d "$PROJECT_ROOT" ]]
-    [[ -d "$PROJECT_BIN" ]]
-    [[ -d "$PROJECT_CONFIG" ]]
-    [[ -d "$PROJECT_MODULES" ]]
-    [[ -d "$PROJECT_SCRIPTS" ]]
+    [[ -d "$PROJECT_BIN_DIR" ]]
+    [[ -d "$PROJECT_CONFIG_DIR" ]]
+    [[ -d "$PROJECT_SCRIPTS_DIR" ]]
 
     # Require that the script was not run as root or with sudo.
     [[ "$__ALLOW_ROOT__" == "$TRUE" ]] || require_non_root

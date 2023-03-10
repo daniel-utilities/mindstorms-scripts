@@ -32,7 +32,7 @@ function on_status_check() {
 
 
 function on_install() {
-    local PROJECT_CONFIG="${fnargs[config]}"
+    local PROJECT_CONFIG_DIR="${fnargs[config]}"
     local install_dir="${fnargs[install]}"
     local original_dir="$pwd"
     local userhome; get_user_home userhome
@@ -48,7 +48,7 @@ function on_install() {
 
     local -a install_files=(
         "$repo_dir/code/nexttool        : $install_dir/nexttool"
-        "$PROJECT_CONFIG/bricxcc/bricks.dat : $userhome/bricxcc/bricks.dat"
+        "$PROJECT_CONFIG_DIR/bricxcc/bricks.dat : $userhome/bricxcc/bricks.dat"
     )
     echo ""
     echo "--------------------------------------------------------------------------------"
@@ -100,7 +100,7 @@ function on_install() {
     echo "Installing files..."
     sudo cp -f "$repo_dir/code/nexttool" "$install_dir/nexttool"
     sudo chmod +x "$install_dir/nexttool"
-    cp -rnv "$PROJECT_CONFIG/bricxcc" "$userhome/bricxcc"
+    cp -rnv "$PROJECT_CONFIG_DIR/bricxcc" "$userhome/bricxcc"
 
     echo ""
     echo "Cleaning up..."
