@@ -82,6 +82,7 @@ ARGS_HELP_TEXT=\
                             If left blank, displays the interactive menu.
                             Default: \"${ARGSPEC[install]}\"
 --force false|true        Forces modules to reinstall even if they are already installed.
+                          Continues installation even if modules fail to install.
                             Default: \"${ARGSPEC[force]}\"
 --allowroot false|true    Allows the installer to run with superuser privilege.
                             If false, the installer will refuse to run with

@@ -182,10 +182,10 @@ function on_print() {
     echo ""
     echo "Repository \"$REPO_NAME\" will be downloaded:"
     echo "  URL:    $REPO_URL"
-    [[ "$REPO_BRANCH" != "" ]] && echo "  Branch: $REPO_BRANCH"
+    if [[ "$REPO_BRANCH" != "" ]]; then echo "  Branch: $REPO_BRANCH"; fi
     echo "  Path:   $REPO_DIR"
     echo ""
-    echo "Files will be installed to:"
+    echo "Files will be installed to subdirectories of:"
     echo "  Prefix: $INSTALL_PREFIX"
     echo ""
 }

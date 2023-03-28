@@ -117,7 +117,7 @@ function on_import() {
 #                 return $__MODULE_STATUS_UNKNOWN__
 #
 function on_status_check() {
-    if [[ ! -x "$(command -v gcc-arm-none-eabi)" ]]; then
+    if [[ ! -x "$(command -v arm-none-eabi-gcc)" ]]; then
         return $__MODULE_STATUS_NOT_INSTALLED__
     fi
 
@@ -138,7 +138,7 @@ function on_status_check() {
 #         &1    Function can print to stdout.
 #
 function on_print() {
-    echo "The ARM EABI cross-compiler (gcc-arm-none-eabi) compiles source code into executable binaries for ARM processors, such as those found in the NXT and EV3 bricks."
+    echo "The ARM EABI compiler (arm-none-eabi-gcc) compiles source code into executable binaries for ARM processors, such as those found in the NXT and EV3 bricks."
     echo "It is a required component for firmware development and for some programming environments (nxOS, nxtOSEK, etc)."
     echo ""
 }
