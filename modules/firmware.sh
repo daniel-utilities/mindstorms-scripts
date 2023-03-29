@@ -116,7 +116,7 @@ function on_import() {
 #                 return $__MODULE_STATUS_UNKNOWN__
 #
 function on_status_check() {
-    if [[ ! -d "/usr/local/etc/mindstorms/firmware" ]]; then
+    if [[ ! -d "/usr/local/share/mindstorms/firmware" ]]; then
         return $__MODULE_STATUS_NOT_INSTALLED__
     fi
 

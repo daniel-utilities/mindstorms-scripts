@@ -100,6 +100,15 @@ function on_import() {
 
     # Require that the script was not run as root (unless "--allow-root true" was specified on the command line)
     [[ "$__ALLOW_ROOT__" == "$TRUE" ]] || require_non_root
+
+    # APT Packages
+    declare -g INSTALL_PACKAGES_APT="gcc g++ binutils build-essential make cmake ninja-build meson bison flex gcc-arm-none-eabi"
+    # gcc-arm-none-eabi package includes:
+    #   binutils-arm-none-eabi
+    #   gcc-arm-none-eabi
+    #   libnewlib-arm-none-eabi
+    #   libnewlib-dev
+    #   libstdc++-arm-none-eabi-newlib
 }
 
 
@@ -141,6 +150,9 @@ function on_print() {
     echo "The ARM EABI compiler (arm-none-eabi-gcc) compiles source code into executable binaries for ARM processors, such as those found in the NXT and EV3 bricks."
     echo "It is a required component for firmware development and for some programming environments (nxOS, nxtOSEK, etc)."
     echo ""
+    echo "The following APT packages will be installed:" 
+    echo "  $INSTALL_PACKAGES_APT"
+    echo ""
 }
 
 
@@ -158,7 +170,11 @@ function on_print() {
 #         &1    Function can print to stdout.
 #
 function on_install() {
-    :   # no-op
+    echo "Installing packages with apt-get:"
+    echo "  \"$INSTALL_PACKAGES_APT\""
+    sudo apt-get update || echo "Warning: Failed apt-get update. Might fail apt-get install as well."
+    sudo apt-get -yq install $INSTALL_PACKAGES_APT
+    echo ""
 }
 
 
