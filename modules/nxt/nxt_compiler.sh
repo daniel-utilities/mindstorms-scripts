@@ -102,7 +102,7 @@ function on_import() {
     [[ "$__ALLOW_ROOT__" == "$TRUE" ]] || require_non_root
 
     # APT Packages
-    declare -g INSTALL_PACKAGES_APT="gcc g++ binutils build-essential make cmake ninja-build meson bison flex gcc-arm-none-eabi"
+    declare -g INSTALL_PACKAGES_APT="gcc g++ binutils build-essential make cmake ninja-build meson bison flex gcc-arm-none-eabi binutils-arm-none-eabi gdb-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib libnewlib-dev"
     # gcc-arm-none-eabi package includes:
     #   binutils-arm-none-eabi
     #   gcc-arm-none-eabi
