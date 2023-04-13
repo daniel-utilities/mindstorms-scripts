@@ -1,0 +1,38 @@
+# On WSL2 (and systems without systemD init), TAG+="uaccess" does not trigger setting ACLs for devices.
+# Using a nonrestrictive GROUP and MODE solves this issue, but comes with a minor security risk on multiuser systems.
+
+# MINDSTORMS RCX USB IR-Tower
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0694", ATTRS{idProduct}=="0001", GROUP="plugdev", MODE="0666"
+
+# MINDSTORMS NXT brick 
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0694", ATTRS{idProduct}=="0002", GROUP="plugdev", MODE="0666"
+
+# MINDSTORMS NXT brick in firmware update mode (Atmel SAM-BA mode)
+# Note: this USB ID is also used by some Arduino boards
+SUBSYSTEM=="usb", ATTRS{idVendor}=="03eb", ATTRS{idProduct}=="6124", GROUP="plugdev", MODE="0666"
+
+# MINDSTORMS EV3 brick
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="0694", ATTRS{idProduct}=="0005", GROUP="plugdev", MODE="0666"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0694", ATTRS{idProduct}=="0005", GROUP="plugdev", MODE="0666"
+
+# MINDSTORMS EV3 brick in firmware update mode
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="0694", ATTRS{idProduct}=="0006", GROUP="plugdev", MODE="0666"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0694", ATTRS{idProduct}=="0006", GROUP="plugdev", MODE="0666"
+
+# SPIKE Prime hub in firmware update mode (DFU mode)
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0694", ATTRS{idProduct}=="0008", GROUP="plugdev", MODE="0666"
+
+# SPIKE Prime hub
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0694", ATTRS{idProduct}=="0009", GROUP="plugdev", MODE="0666"
+
+# SPIKE Essential hub in firmware update mode (DFU mode)
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0694", ATTRS{idProduct}=="000c", GROUP="plugdev", MODE="0666"
+
+# SPIKE Essential hub
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0694", ATTRS{idProduct}=="000d", GROUP="plugdev", MODE="0666"
+
+# MINDSTORMS Inventor hub
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0694", ATTRS{idProduct}=="0010", GROUP="plugdev", MODE="0666"
+
+# MINDSTORMS Inventor hub in firmware update mode (DFU mode)
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0694", ATTRS{idProduct}=="0011", GROUP="plugdev", MODE="0666"

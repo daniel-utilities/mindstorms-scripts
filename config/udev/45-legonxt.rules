@@ -1,0 +1,5 @@
+# rules to unbind cdc_acm
+ACTION=="add", SUBSYSTEM=="usb", DRIVER=="cdc_acm", ATTRS{idVendor}=="03eb", ATTRS{idProduct}=="6124", RUN+="/bin/sh -c echo $kernel >/sys/bus/usb/drivers/cdc_acm/unbind'"
+
+# rules to unbind sam-ba
+ACTION=="add", SUBSYSTEM=="usb", DRIVER=="sam-ba", ATTRS{idVendor}=="03eb", ATTRS{idProduct}=="6124", RUN+="/bin/sh -c echo $kernel >/sys/bus/usb/drivers/sam-ba/unbind'"
