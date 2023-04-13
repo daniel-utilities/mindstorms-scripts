@@ -1,4 +1,7 @@
+# Optional udev rules which trigger a script when an NXT is connected.
+# Does not create symlinks or set device permissions; use 50-pbrick.rules for that.
+
 # NXT in normal mode
-SUBSYSTEM=="usb", ATTR{idVendor}=="0694", ATTR{idProduct}=="0002", TAG+="uaccess", SYMLINK+="legonxt-%k", RUN+="/etc/udev/nxt_event_handler.sh 'nxt' '$attr{serial}' '%k' '%M' '%m'" 
+SUBSYSTEM=="usb", ATTR{idVendor}=="0694", ATTR{idProduct}=="0002", RUN+="/etc/udev/nxt_event_handler.sh 'nxt' '$attr{serial}' '%k' '%M' '%m'" 
 # NXT in firmware-update (SAM-BA) mode
-SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="6124", TAG+="uaccess", SYMLINK+="legonxt-%k", RUN+="/etc/udev/nxt_event_handler.sh 'samba' '$attr{serial}' '%k' '%M' '%m'"
+SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="6124", RUN+="/etc/udev/nxt_event_handler.sh 'samba' '$attr{serial}' '%k' '%M' '%m'"

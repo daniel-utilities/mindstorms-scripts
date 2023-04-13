@@ -42,7 +42,33 @@ HIDDEN="false"
 #       ****                Define additional global variables in this section.
 #                           These will be accessible by all module functions.
 #       
-MY_GLOBAL_VAR="example global variable"
+
+# GCC C/C++ compiler for the host machine
+#   build-essential:
+#       libc6-dev (depends)
+#       dpkg-dev (depends)
+APT_HOST_COMPILER="gcc g++ binutils build-essential"
+
+# Assorted build tools for the host machine
+APT_BUILD_TOOLS="make cmake ninja-build meson bison flex scons"
+
+# GCC C/C++ compiler for ARM bare-metal targets
+#   gcc-arm-none-eabi:
+#       binutils-arm-none-eabi (depends)
+APT_CROSS_COMPILER="gcc-arm-none-eabi"
+
+# C/C++ Libraries, including Newlib (libc, libm), for ARM bare-metal targets
+#   libnewlib-arm-none-eabi:
+#       libnewlib-dev (depends)
+APT_CROSS_LIBS="libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib"
+
+# GDB debugger for ARM
+APT_CROSS_DEBUGGER="gdb-multiarch"
+
+
+
+INSTALL_PACKAGES_APT="$APT_HOST_COMPILER $APT_BUILD_TOOLS $APT_CROSS_COMPILER $APT_CROSS_LIBS $APT_CROSS_DEBUGGER"
+
 
 
 ###############################################################################
@@ -100,15 +126,6 @@ function on_import() {
 
     # Require that the script was not run as root (unless "--allow-root true" was specified on the command line)
     [[ "$__ALLOW_ROOT__" == "$TRUE" ]] || require_non_root
-
-    # APT Packages
-    declare -g INSTALL_PACKAGES_APT="gcc g++ binutils build-essential make cmake ninja-build meson bison flex gcc-arm-none-eabi binutils-arm-none-eabi gdb-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib libnewlib-dev"
-    # gcc-arm-none-eabi package includes:
-    #   binutils-arm-none-eabi
-    #   gcc-arm-none-eabi
-    #   libnewlib-arm-none-eabi
-    #   libnewlib-dev
-    #   libstdc++-arm-none-eabi-newlib
 }
 
 
@@ -151,7 +168,16 @@ function on_print() {
     echo "It is a required component for firmware development and for some programming environments (nxOS, nxtOSEK, etc)."
     echo ""
     echo "The following APT packages will be installed:" 
-    echo "  $INSTALL_PACKAGES_APT"
+    echo "  C/C++ Compiler for Host machine:"
+    echo "    $APT_HOST_COMPILER"
+    echo "  Assorted build tools for Host machine:"
+    echo "    $APT_BUILD_TOOLS"
+    echo "  C/C++ Compiler for ARM bare-metal targets:"
+    echo "    $APT_CROSS_COMPILER"
+    echo "  C/C++ Libraries for ARM processors:"
+    echo "    $APT_CROSS_LIBS"
+    echo "  GDB Debugger for ARM processors:"
+    echo "    $APT_CROSS_DEBUGGER"
     echo ""
 }
 

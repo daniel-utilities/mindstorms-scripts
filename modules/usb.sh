@@ -42,15 +42,32 @@ HIDDEN="false"
 #       ****                Define additional global variables in this section.
 #                           These will be accessible by all module functions.
 #       
+
+# System checks
+if is_wsl2;    then WSL2=$TRUE; else WSL2=$FALSE; fi
+if is_systemd; then SYSD=$TRUE; else SYS2=$FALSE; fi
+
+# Git is required to download the Pybricks repo.
+# ACL is required for udev rules containing TAG=="uaccess"
+INSTALL_PACKAGES_APT="git acl"
+
+# The Pybricks repo has a udev rules file for all Lego pbricks.
 REPO_URL="https://github.com/pybricks/pbrick-rules.git"
 REPO_BRANCH="main"
 REPO_NAME=""; get_basename REPO_NAME "$REPO_URL" ; REPO_NAME="${REPO_NAME%.*}"
 REPO_DIR="$__TEMP_DIR__/$REPO_NAME"
+
 INSTALL_FILES=(
     "$REPO_DIR/debian/pbrick-rules.pbrick.udev : /etc/udev/rules.d/50-pbrick.rules"
-    "$PROJECT_CONFIG_DIR/udev/70-nxt.rules         : /etc/udev/rules.d/70-nxt.rules"
-    "$PROJECT_CONFIG_DIR/udev/nxt_event_handler.sh : /etc/udev/nxt_event_handler.sh"
 )
+
+# On WSL2 (and systems without systemD init), TAG+="uaccess" does not trigger setting ACLs for devices.
+# Using a nonrestrictive GROUP and MODE solves this issue, but comes with a minor security risk on multiuser systems.
+if [[ $WSL2 == $TRUE || $SYSD == $FALSE ]]; then
+    INSTALL_FILES+=("$PROJECT_CONFIG_DIR/udev/60-pbrick-wsl.rules : /etc/udev/rules.d/")
+fi
+
+# Linux standard permission groups for access to pluggable devices (plugdev) and serial devices (dialout).
 PERMGROUPS=(
     plugdev dialout
 )
@@ -111,7 +128,7 @@ function on_import() {
     [[ -d "$PROJECT_SCRIPTS_DIR" ]]
 
     # Require that the script was not run as root or with sudo.
-    [[ "$__ALLOW_ROOT__" == "$TRUE" ]] || require_non_root
+    # [[ "$__ALLOW_ROOT__" == "$TRUE" ]] || require_non_root
 }
 
 
@@ -154,6 +171,27 @@ function on_print() {
     echo "UDEV rules are required for user access to hardware devices, including all Mindstorms devices. Without this configuration, all tools will require 'sudo' (root) privilege and many scripts will break."
     echo "Where applicable, kernel modules will be enabled so Mindstorms devices always have the correct drivers available."
     echo ""
+    if [[ $WSL2 == $TRUE ]] ; then
+        echo "WARNING: WSL2 Detected. USB devices will not work without USBIP support. See here for installation instructions: https://github.com/dorssel/usbipd-win/wiki/WSL-support"
+        echo ""
+    fi
+    if [[ $WSL2 == $TRUE && $SYSD == $FALSE ]] ; then
+        echo "WARNING: WSL was not launched with SystemD init. Some features may not work correctly."
+        echo "See here for details: https://devblogs.microsoft.com/commandline/systemd-support-is-now-available-in-wsl/"
+        echo "To fix, edit /etc/wsl.conf and add the following two lines:"
+        echo ""
+        echo "[boot]"
+        echo "systemd=true"
+        echo ""
+    fi
+    if [[ $WSL2 == $FALSE && $SYSD == $FALSE ]] ; then
+        echo "WARNING: System was started without SystemD init. Some features may not work correctly."
+        echo ""
+    fi
+    echo ""
+    echo "The following APT packages will be installed:" 
+    echo "  $INSTALL_PACKAGES_APT"
+    echo ""
     echo "Repository \"$REPO_NAME\" will be downloaded:"
     echo "  URL:    $REPO_URL"
     if [[ "$REPO_BRANCH" != "" ]]; then echo "  Branch: $REPO_BRANCH"; fi
@@ -182,6 +220,12 @@ function on_print() {
 #         &1    Function can print to stdout.
 #
 function on_install() {
+    echo "Installing packages with apt-get:"
+    echo "  \"$INSTALL_PACKAGES_APT\""
+    sudo apt-get update || echo "Warning: Failed apt-get update. Might fail apt-get install as well."
+    sudo apt-get -yq install $INSTALL_PACKAGES_APT
+    echo ""
+
     echo "Downloading repository: $REPO_NAME"
     cd "$__TEMP_DIR__"
     git_latest "$REPO_URL" "$REPO_BRANCH"
